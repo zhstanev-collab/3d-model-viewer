@@ -651,22 +651,24 @@
 
       const viewerElement = document.getElementById('cloudimage-360-viewer');
       
+      // Create blob URLs for uploaded images
+      const blobUrls = uploadedImages.map(img => {
+        const byteString = atob(img.data.split(',')[1]);
+        const mimeString = img.data.split(',')[0].match(/:(.*?);/)[1];
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        const blob = new Blob([ab], { type: mimeString });
+        return URL.createObjectURL(blob);
+      });
+
       // Remove folder-based attributes
       viewerElement.removeAttribute('data-folder');
       viewerElement.removeAttribute('data-filename-x');
-      viewerElement.removeAttribute('data-amount-x');
+      viewerElement.removeAttribute('data-image-list');
       
-      // Set image list
-      viewerElement.setAttribute('data-image-list', JSON.stringify(uploadedImages.map(img => img.data)));
-      viewerElement.setAttribute('data-amount-x', uploadedImages.length);
-      viewerElement.setAttribute('data-autoplay', autoplay);
-      viewerElement.setAttribute('data-fullscreen', fullscreen);
-      viewerElement.setAttribute('data-zoom', 'true');
-      viewerElement.setAttribute('data-zoom-max', '3');
-      viewerElement.setAttribute('data-speed', '100');
-      viewerElement.setAttribute('data-drag-speed', '150');
-      viewerElement.setAttribute('data-inertia', 'true');
-
       document.getElementById('viewerContainer').style.display = 'block';
 
       if (viewer) {
@@ -674,7 +676,7 @@
       }
       viewer = new window.CI360();
       viewer.init(viewerElement, {
-        imageList: uploadedImages.map(img => img.data),
+        imageList: blobUrls,
         amountX: uploadedImages.length,
         autoplay: autoplay,
         fullscreen: fullscreen,
