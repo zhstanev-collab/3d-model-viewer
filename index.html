@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>360° Product View</title>
+  <script src="https://cdn.cloudimage.io/360-view/4.10.0/360-view.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 40px 30px;
+      text-align: center;
+      border-bottom: 1px solid #e8e8e8;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: #666;
+      font-size: 16px;
+    }
+
+    .viewer-section {
+      padding: 40px 30px;
+      background: #fafafa;
+    }
+
+    .cloudimage-360 {
+      width: 100%;
+      height: 500px;
+      max-width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      background: white;
+    }
+
+    @media (max-width: 768px) {
+      .cloudimage-360 {
+        height: 350px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .header, .viewer-section {
+        padding: 30px 20px;
+      }
+    }
+
+    .footer {
+      padding: 30px;
+      text-align: center;
+      border-top: 1px solid #e8e8e8;
+      background: #f8f8f8;
+    }
+
+    .footer p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .footer a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .instructions {
+      background: #f0f4ff;
+      border-left: 4px solid #0066cc;
+      padding: 20px;
+      margin: 30px 0;
+      border-radius: 4px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .instructions code {
+      background: #e8eef7;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>360° Product View</h1>
+      <p>Drag to rotate • Double-click to zoom • Touch to interact</p>
+    </div>
+
+    <!-- Viewer Section -->
+    <div class="viewer-section">
+      <div
+        class="cloudimage-360"
+        data-folder="https://your-image-url-here.com/images/"
+        data-filename-x="image-{index}.jpg"
+        data-amount-x="36"
+        data-autoplay="true"
+        data-fullscreen="true"
+        data-zoom="true"
+        data-zoom-max="3"
+        data-speed="100"
+        data-drag-speed="150"
+        data-inertia="true"
+      ></div>
+
+      <div class="instructions">
+        <strong>📝 Setup Instructions:</strong>
+        <ol style="margin-left: 20px; margin-top: 10px;">
+          <li>Prepare your images: Name them sequentially (e.g., <code>image-1.jpg</code>, <code>image-2.jpg</code>, etc.)</li>
+          <li>Upload them to a web server or CDN</li>
+          <li>Replace <code>data-folder</code> with your image URL</li>
+          <li>Update <code>data-filename-x</code> pattern to match your naming</li>
+          <li>Update <code>data-amount-x</code> to the number of images you have</li>
+          <li>Save and refresh the page</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>Powered by <a href="https://github.com/Scaleflex/cloudimage-360-view" target="_blank">Cloudimage 360 View</a></p>
+      <p style="margin-top: 10px; font-size: 12px; color: #999;">
+        For more features and customization options, visit the <a href="https://scaleflex.github.io/cloudimage-360-view/" target="_blank">documentation</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Initialize the viewer -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const viewer = new window.CI360();
+      viewer.initAll();
+    });
+  </script>
+</body>
+</html>
