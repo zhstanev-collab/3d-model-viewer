@@ -691,10 +691,12 @@
 
         document.getElementById('viewerContainer').style.display = 'block';
 
+        // Source data must be set as DOM attributes — JS options don't work for imageList/amountX
+        viewerElement.setAttribute('data-image-list-x', JSON.stringify(blobUrls));
+        viewerElement.setAttribute('data-amount-x', uploadedImages.length);
+
         viewer = viewerElement;
         window.CI360.init(viewerElement, {
-          imageList: blobUrls,
-          amountX: uploadedImages.length,
           autoplay: autoplay,
           fullscreen: fullscreen,
           zoom: true,
