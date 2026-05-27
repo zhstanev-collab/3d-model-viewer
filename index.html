@@ -555,10 +555,10 @@
         document.getElementById('viewerContainer').style.display = 'block';
 
         if (viewer) {
-          viewer = null;
+          window.CI360.destroy(viewer);
         }
-        viewer = new window.CI360();
-        viewer.init(viewerElement);
+        viewer = viewerElement;
+        window.CI360.init(viewerElement);
 
         const successMsg = document.getElementById('successMsg');
         successMsg.classList.add('show');
@@ -681,10 +681,10 @@
         document.getElementById('viewerContainer').style.display = 'block';
 
         if (viewer) {
-          viewer = null;
+          window.CI360.destroy(viewer);
         }
-        viewer = new window.CI360();
-        viewer.init(viewerElement, {
+        viewer = viewerElement;
+        window.CI360.init(viewerElement, {
           imageList: blobUrls,
           amountX: uploadedImages.length,
           autoplay: autoplay,
