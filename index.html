@@ -507,216 +507,232 @@
     let viewer = null;
     let uploadedImages = [];
 
-    // Tab switching
-    function switchTab(tab) {
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
-      document.getElementById('tab-' + tab).classList.add('active');
-      event.target.classList.add('active');
+    // Wait for CI360 library to load
+    function waitForCI360() {
+      if (typeof window.CI360 !== 'undefined') {
+        initializeApp();
+      } else {
+        setTimeout(waitForCI360, 100);
+      }
     }
 
-    // Remote URL mode
-    function loadViewer() {
-      const folder = document.getElementById('imageFolder').value.trim();
-      const pattern = document.getElementById('filenamePattern').value.trim();
-      const count = parseInt(document.getElementById('imageCount').value);
-      const autoplay = document.getElementById('autoplay').value === 'true';
-      const fullscreen = document.getElementById('fullscreen').value === 'true';
+    function initializeApp() {
+      // Tab switching
+      window.switchTab = function(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        event.target.classList.add('active');
+      };
 
-      if (!folder || !pattern || count < 1) {
-        alert('Please fill in all required fields');
-        return;
+      // Remote URL mode
+      window.loadViewer = function() {
+        const folder = document.getElementById('imageFolder').value.trim();
+        const pattern = document.getElementById('filenamePattern').value.trim();
+        const count = parseInt(document.getElementById('imageCount').value);
+        const autoplay = document.getElementById('autoplay').value === 'true';
+        const fullscreen = document.getElementById('fullscreen').value === 'true';
+
+        if (!folder || !pattern || count < 1) {
+          alert('Please fill in all required fields');
+          return;
+        }
+
+        const folderUrl = folder.endsWith('/') ? folder : folder + '/';
+
+        const viewerElement = document.getElementById('cloudimage-360-viewer');
+        viewerElement.setAttribute('data-folder', folderUrl);
+        viewerElement.setAttribute('data-filename-x', pattern);
+        viewerElement.setAttribute('data-amount-x', count);
+        viewerElement.setAttribute('data-autoplay', autoplay);
+        viewerElement.setAttribute('data-fullscreen', fullscreen);
+        viewerElement.setAttribute('data-zoom', 'true');
+        viewerElement.setAttribute('data-zoom-max', '3');
+        viewerElement.setAttribute('data-speed', '100');
+        viewerElement.setAttribute('data-drag-speed', '150');
+        viewerElement.setAttribute('data-inertia', 'true');
+
+        document.getElementById('viewerContainer').style.display = 'block';
+
+        if (viewer) {
+          viewer = null;
+        }
+        viewer = new window.CI360();
+        viewer.init(viewerElement);
+
+        const successMsg = document.getElementById('successMsg');
+        successMsg.classList.add('show');
+        setTimeout(() => {
+          successMsg.classList.remove('show');
+        }, 3000);
+
+        viewerElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      };
+
+      window.resetForm = function() {
+        document.getElementById('imageFolder').value = 'https://scaleflex.cloudimg.io/v7/demo/360-car/';
+        document.getElementById('filenamePattern').value = 'car-{index}.jpg';
+        document.getElementById('imageCount').value = '36';
+        document.getElementById('autoplay').value = 'true';
+        document.getElementById('fullscreen').value = 'true';
+        document.getElementById('viewerContainer').style.display = 'none';
+      };
+
+      // Upload mode event listeners
+      const uploadArea = document.getElementById('uploadArea');
+      const fileInput = document.getElementById('fileInput');
+
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+      });
+
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+        handleFileSelect(files);
+      });
+
+      fileInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        handleFileSelect(files);
+      });
+
+      function handleFileSelect(files) {
+        if (files.length === 0) {
+          alert('Please select image files');
+          return;
+        }
+
+        uploadedImages = [];
+        const preview = document.getElementById('imagePreview');
+        const progress = document.getElementById('uploadProgress');
+        
+        preview.innerHTML = '';
+        preview.style.display = 'grid';
+        progress.classList.add('show');
+
+        let loaded = 0;
+
+        files.forEach((file, index) => {
+          const reader = new FileReader();
+
+          reader.onload = (e) => {
+            uploadedImages.push({
+              data: e.target.result,
+              name: file.name
+            });
+
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            preview.appendChild(img);
+
+            loaded++;
+            const percent = (loaded / files.length) * 100;
+            document.getElementById('progressFill').style.width = percent + '%';
+            document.getElementById('uploadStatus').textContent = `Loaded ${loaded} of ${files.length} images`;
+
+            if (loaded === files.length) {
+              setTimeout(() => {
+                progress.classList.remove('show');
+                document.getElementById('loadUploadedBtn').style.display = 'block';
+              }, 500);
+            }
+          };
+
+          reader.readAsDataURL(file);
+        });
       }
 
-      const folderUrl = folder.endsWith('/') ? folder : folder + '/';
+      window.loadUploadedImages = function() {
+        if (uploadedImages.length === 0) {
+          alert('Please select images first');
+          return;
+        }
 
-      const viewerElement = document.getElementById('cloudimage-360-viewer');
-      viewerElement.setAttribute('data-folder', folderUrl);
-      viewerElement.setAttribute('data-filename-x', pattern);
-      viewerElement.setAttribute('data-amount-x', count);
-      viewerElement.setAttribute('data-autoplay', autoplay);
-      viewerElement.setAttribute('data-fullscreen', fullscreen);
-      viewerElement.setAttribute('data-zoom', 'true');
-      viewerElement.setAttribute('data-zoom-max', '3');
-      viewerElement.setAttribute('data-speed', '100');
-      viewerElement.setAttribute('data-drag-speed', '150');
-      viewerElement.setAttribute('data-inertia', 'true');
+        const autoplay = document.getElementById('uploadAutoplay').value === 'true';
+        const fullscreen = document.getElementById('uploadFullscreen').value === 'true';
 
-      document.getElementById('viewerContainer').style.display = 'block';
-
-      if (viewer) {
-        viewer = null;
-      }
-      viewer = new window.CI360();
-      viewer.init(viewerElement);
-
-      const successMsg = document.getElementById('successMsg');
-      successMsg.classList.add('show');
-      setTimeout(() => {
-        successMsg.classList.remove('show');
-      }, 3000);
-
-      viewerElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function resetForm() {
-      document.getElementById('imageFolder').value = 'https://scaleflex.cloudimg.io/v7/demo/360-car/';
-      document.getElementById('filenamePattern').value = 'car-{index}.jpg';
-      document.getElementById('imageCount').value = '36';
-      document.getElementById('autoplay').value = 'true';
-      document.getElementById('fullscreen').value = 'true';
-      document.getElementById('viewerContainer').style.display = 'none';
-    }
-
-    // Upload mode
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('fileInput');
-
-    uploadArea.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadArea.classList.add('dragover');
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-      uploadArea.classList.remove('dragover');
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadArea.classList.remove('dragover');
-      const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-      handleFileSelect(files);
-    });
-
-    fileInput.addEventListener('change', (e) => {
-      const files = Array.from(e.target.files);
-      handleFileSelect(files);
-    });
-
-    function handleFileSelect(files) {
-      if (files.length === 0) {
-        alert('Please select image files');
-        return;
-      }
-
-      uploadedImages = [];
-      const preview = document.getElementById('imagePreview');
-      const progress = document.getElementById('uploadProgress');
-      
-      preview.innerHTML = '';
-      preview.style.display = 'grid';
-      progress.classList.add('show');
-
-      let loaded = 0;
-
-      files.forEach((file, index) => {
-        const reader = new FileReader();
-
-        reader.onload = (e) => {
-          uploadedImages.push({
-            data: e.target.result,
-            name: file.name
-          });
-
-          // Preview
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          preview.appendChild(img);
-
-          loaded++;
-          const percent = (loaded / files.length) * 100;
-          document.getElementById('progressFill').style.width = percent + '%';
-          document.getElementById('uploadStatus').textContent = `Loaded ${loaded} of ${files.length} images`;
-
-          if (loaded === files.length) {
-            setTimeout(() => {
-              progress.classList.remove('show');
-              document.getElementById('loadUploadedBtn').style.display = 'block';
-            }, 500);
+        const viewerElement = document.getElementById('cloudimage-360-viewer');
+        
+        // Create blob URLs for uploaded images
+        const blobUrls = uploadedImages.map(img => {
+          const byteString = atob(img.data.split(',')[1]);
+          const mimeString = img.data.split(',')[0].match(/:(.*?);/)[1];
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
           }
-        };
+          const blob = new Blob([ab], { type: mimeString });
+          return URL.createObjectURL(blob);
+        });
 
-        reader.readAsDataURL(file);
-      });
-    }
+        // Remove folder-based attributes
+        viewerElement.removeAttribute('data-folder');
+        viewerElement.removeAttribute('data-filename-x');
+        viewerElement.removeAttribute('data-image-list');
+        
+        document.getElementById('viewerContainer').style.display = 'block';
 
-    function loadUploadedImages() {
-      if (uploadedImages.length === 0) {
-        alert('Please select images first');
-        return;
-      }
-
-      const autoplay = document.getElementById('uploadAutoplay').value === 'true';
-      const fullscreen = document.getElementById('uploadFullscreen').value === 'true';
-
-      const viewerElement = document.getElementById('cloudimage-360-viewer');
-      
-      // Create blob URLs for uploaded images
-      const blobUrls = uploadedImages.map(img => {
-        const byteString = atob(img.data.split(',')[1]);
-        const mimeString = img.data.split(',')[0].match(/:(.*?);/)[1];
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
-        for (let i = 0; i < byteString.length; i++) {
-          ia[i] = byteString.charCodeAt(i);
+        if (viewer) {
+          viewer = null;
         }
-        const blob = new Blob([ab], { type: mimeString });
-        return URL.createObjectURL(blob);
-      });
+        viewer = new window.CI360();
+        viewer.init(viewerElement, {
+          imageList: blobUrls,
+          amountX: uploadedImages.length,
+          autoplay: autoplay,
+          fullscreen: fullscreen,
+          zoom: true,
+          zoomMax: 3,
+          speed: 100,
+          dragSpeed: 150,
+          inertia: true
+        });
 
-      // Remove folder-based attributes
-      viewerElement.removeAttribute('data-folder');
-      viewerElement.removeAttribute('data-filename-x');
-      viewerElement.removeAttribute('data-image-list');
-      
-      document.getElementById('viewerContainer').style.display = 'block';
+        const successMsg = document.getElementById('successMsg');
+        successMsg.classList.add('show');
+        setTimeout(() => {
+          successMsg.classList.remove('show');
+        }, 3000);
 
-      if (viewer) {
-        viewer = null;
-      }
-      viewer = new window.CI360();
-      viewer.init(viewerElement, {
-        imageList: blobUrls,
-        amountX: uploadedImages.length,
-        autoplay: autoplay,
-        fullscreen: fullscreen,
-        zoom: true,
-        zoomMax: 3,
-        speed: 100,
-        dragSpeed: 150,
-        inertia: true
-      });
+        viewerElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      };
 
-      const successMsg = document.getElementById('successMsg');
-      successMsg.classList.add('show');
-      setTimeout(() => {
-        successMsg.classList.remove('show');
-      }, 3000);
+      window.clearUploadedImages = function() {
+        uploadedImages = [];
+        document.getElementById('fileInput').value = '';
+        document.getElementById('imagePreview').innerHTML = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('loadUploadedBtn').style.display = 'none';
+        document.getElementById('uploadProgress').classList.remove('show');
+        document.getElementById('viewerContainer').style.display = 'none';
+      };
 
-      viewerElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function clearUploadedImages() {
-      uploadedImages = [];
-      document.getElementById('fileInput').value = '';
-      document.getElementById('imagePreview').innerHTML = '';
-      document.getElementById('imagePreview').style.display = 'none';
-      document.getElementById('loadUploadedBtn').style.display = 'none';
-      document.getElementById('uploadProgress').classList.remove('show');
-      document.getElementById('viewerContainer').style.display = 'none';
-    }
-
-    document.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter' && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) {
-        if (document.getElementById('tab-remote').classList.contains('active')) {
-          loadViewer();
+      document.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) {
+          if (document.getElementById('tab-remote').classList.contains('active')) {
+            window.loadViewer();
+          }
         }
-      }
-    });
+      });
 
-    document.addEventListener('DOMContentLoaded', function() {
-      loadViewer();
-    });
+      // Load demo on page load
+      window.loadViewer();
+    }
+
+    // Start waiting for library to load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', waitForCI360);
+    } else {
+      waitForCI360();
+    }
   </script>
 </body>
 </html>
