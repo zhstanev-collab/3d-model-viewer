@@ -97,22 +97,121 @@
       text-decoration: underline;
     }
 
-    .instructions {
-      background: #f0f4ff;
-      border-left: 4px solid #0066cc;
-      padding: 20px;
-      margin: 30px 0;
-      border-radius: 4px;
-      font-size: 14px;
-      color: #333;
+    .config-section {
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
     }
 
-    .instructions code {
-      background: #e8eef7;
-      padding: 2px 6px;
-      border-radius: 3px;
+    .config-section h3 {
+      font-size: 18px;
+      color: #1a1a1a;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
       font-family: 'Courier New', monospace;
-      color: #d32f2f;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #0066cc;
+      color: white;
+      flex: 1;
+    }
+
+    .btn-primary:hover {
+      background: #0052a3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+    }
+
+    .btn-secondary {
+      background: #e8e8e8;
+      color: #333;
+      flex: 1;
+    }
+
+    .btn-secondary:hover {
+      background: #d0d0d0;
+    }
+
+    .success-message {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .example-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 6px;
+      font-style: italic;
     }
   </style>
 </head>
@@ -124,32 +223,78 @@
       <p>Drag to rotate • Double-click to zoom • Touch to interact</p>
     </div>
 
-    <!-- Viewer Section -->
+    <!-- Configuration Section -->
     <div class="viewer-section">
-      <div
-        class="cloudimage-360"
-        data-folder="https://your-image-url-here.com/images/"
-        data-filename-x="image-{index}.jpg"
-        data-amount-x="36"
-        data-autoplay="true"
-        data-fullscreen="true"
-        data-zoom="true"
-        data-zoom-max="3"
-        data-speed="100"
-        data-drag-speed="150"
-        data-inertia="true"
-      ></div>
+      <div class="config-section">
+        <h3>⚙️ Configure Your 360 Viewer</h3>
+        
+        <div class="form-group">
+          <label for="imageFolder">Image Folder URL *</label>
+          <input 
+            type="text" 
+            id="imageFolder" 
+            placeholder="https://example.com/images/"
+            value="https://scaleflex.cloudimg.io/v7/demo/360-car/"
+          >
+          <div class="example-text">Example: https://mycdn.com/product-360/</div>
+        </div>
 
-      <div class="instructions">
-        <strong>📝 Setup Instructions:</strong>
-        <ol style="margin-left: 20px; margin-top: 10px;">
-          <li>Prepare your images: Name them sequentially (e.g., <code>image-1.jpg</code>, <code>image-2.jpg</code>, etc.)</li>
-          <li>Upload them to a web server or CDN</li>
-          <li>Replace <code>data-folder</code> with your image URL</li>
-          <li>Update <code>data-filename-x</code> pattern to match your naming</li>
-          <li>Update <code>data-amount-x</code> to the number of images you have</li>
-          <li>Save and refresh the page</li>
-        </ol>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="filenamePattern">Filename Pattern *</label>
+            <input 
+              type="text" 
+              id="filenamePattern" 
+              placeholder="image-{index}.jpg"
+              value="car-{index}.jpg"
+            >
+            <div class="example-text">Use {index} as placeholder</div>
+          </div>
+
+          <div class="form-group">
+            <label for="imageCount">Number of Images *</label>
+            <input 
+              type="number" 
+              id="imageCount" 
+              min="1" 
+              max="360"
+              value="36"
+            >
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="autoplay">Autoplay</label>
+            <select id="autoplay">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="fullscreen">Fullscreen</label>
+            <select id="fullscreen">
+              <option value="true">Yes</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button class="btn-primary" onclick="loadViewer()">Load 360 Viewer</button>
+          <button class="btn-secondary" onclick="resetForm()">Reset</button>
+        </div>
+
+        <div class="success-message" id="successMsg">✓ Viewer loaded successfully!</div>
+      </div>
+
+      <!-- Viewer Container -->
+      <div id="viewerContainer" style="display: none;">
+        <div
+          id="cloudimage-360-viewer"
+          class="cloudimage-360"
+        ></div>
       </div>
     </div>
 
@@ -164,9 +309,77 @@
 
   <!-- Initialize the viewer -->
   <script>
+    let viewer = null;
+
+    function loadViewer() {
+      const folder = document.getElementById('imageFolder').value.trim();
+      const pattern = document.getElementById('filenamePattern').value.trim();
+      const count = parseInt(document.getElementById('imageCount').value);
+      const autoplay = document.getElementById('autoplay').value === 'true';
+      const fullscreen = document.getElementById('fullscreen').value === 'true';
+
+      // Validation
+      if (!folder || !pattern || count < 1) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      // Ensure folder ends with /
+      const folderUrl = folder.endsWith('/') ? folder : folder + '/';
+
+      // Create or update the viewer element
+      const viewerElement = document.getElementById('cloudimage-360-viewer');
+      viewerElement.setAttribute('data-folder', folderUrl);
+      viewerElement.setAttribute('data-filename-x', pattern);
+      viewerElement.setAttribute('data-amount-x', count);
+      viewerElement.setAttribute('data-autoplay', autoplay);
+      viewerElement.setAttribute('data-fullscreen', fullscreen);
+      viewerElement.setAttribute('data-zoom', 'true');
+      viewerElement.setAttribute('data-zoom-max', '3');
+      viewerElement.setAttribute('data-speed', '100');
+      viewerElement.setAttribute('data-drag-speed', '150');
+      viewerElement.setAttribute('data-inertia', 'true');
+
+      // Show viewer container
+      document.getElementById('viewerContainer').style.display = 'block';
+
+      // Re-initialize the viewer
+      if (viewer) {
+        viewer = null;
+      }
+      viewer = new window.CI360();
+      viewer.init(viewerElement);
+
+      // Show success message
+      const successMsg = document.getElementById('successMsg');
+      successMsg.classList.add('show');
+      setTimeout(() => {
+        successMsg.classList.remove('show');
+      }, 3000);
+
+      // Scroll to viewer
+      viewerElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function resetForm() {
+      document.getElementById('imageFolder').value = 'https://scaleflex.cloudimg.io/v7/demo/360-car/';
+      document.getElementById('filenamePattern').value = 'car-{index}.jpg';
+      document.getElementById('imageCount').value = '36';
+      document.getElementById('autoplay').value = 'true';
+      document.getElementById('fullscreen').value = 'true';
+      document.getElementById('viewerContainer').style.display = 'none';
+    }
+
+    // Allow Enter key to load viewer
+    document.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter' && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) {
+        loadViewer();
+      }
+    });
+
+    // Load demo on page load
     document.addEventListener('DOMContentLoaded', function() {
-      const viewer = new window.CI360();
-      viewer.initAll();
+      loadViewer();
     });
   </script>
 </body>
