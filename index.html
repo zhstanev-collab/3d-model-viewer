@@ -526,6 +526,20 @@
       };
 
       // Remote URL mode
+      // Helper to create a fresh viewer DOM element (wipe any cached library state)
+      function createFreshViewer() {
+        const container = document.getElementById('viewerContainer');
+        const old = document.getElementById('cloudimage-360-viewer');
+        if (old) old.remove();
+        const el = document.createElement('div');
+        el.id = 'cloudimage-360-viewer';
+        el.className = 'cloudimage-360';
+        container.appendChild(el);
+        // Reset viewer reference so old init state is fully discarded
+        viewer = el;
+        return el;
+      }
+
       window.loadViewer = function() {
         const folder = document.getElementById('imageFolder').value.trim();
         const pattern = document.getElementById('filenamePattern').value.trim();
@@ -540,7 +554,7 @@
 
         const folderUrl = folder.endsWith('/') ? folder : folder + '/';
 
-        const viewerElement = document.getElementById('cloudimage-360-viewer');
+        const viewerElement = createFreshViewer();
         viewerElement.setAttribute('data-folder', folderUrl);
         viewerElement.setAttribute('data-filename-x', pattern);
         viewerElement.setAttribute('data-amount-x', count);
@@ -554,10 +568,6 @@
 
         document.getElementById('viewerContainer').style.display = 'block';
 
-        if (viewer) {
-          window.CI360.destroy(viewer);
-        }
-        viewer = viewerElement;
         window.CI360.init(viewerElement);
 
         const successMsg = document.getElementById('successMsg');
@@ -658,24 +668,6 @@
         const autoplay = document.getElementById('uploadAutoplay').value === 'true';
         const fullscreen = document.getElementById('uploadFullscreen').value === 'true';
 
-        const viewerElement = document.getElementById('cloudimage-360-viewer');
-
-        // Destroy previous viewer instance BEFORE modifying attributes
-        if (viewer) {
-          window.CI360.destroy(viewer);
-          viewer = null;
-        }
-
-        // Remove ALL folder/pattern attributes left from previous loads
-        // Attributes take priority over JS options, so they must be fully stripped
-        viewerElement.removeAttribute('data-folder');
-        viewerElement.removeAttribute('data-filename-x');
-        viewerElement.removeAttribute('data-filename-y');
-        viewerElement.removeAttribute('data-image-list-x');
-        viewerElement.removeAttribute('data-image-list-y');
-        viewerElement.removeAttribute('data-amount-x');
-        viewerElement.removeAttribute('data-amount-y');
-
         // Create blob URLs for uploaded images
         const blobUrls = uploadedImages.map(img => {
           const byteString = atob(img.data.split(',')[1]);
@@ -689,22 +681,21 @@
           return URL.createObjectURL(blob);
         });
 
-        document.getElementById('viewerContainer').style.display = 'block';
-
-        // Source data must be set as DOM attributes — JS options don't work for imageList/amountX
+        // Replace the DOM element entirely to wipe any cached library state
+        const viewerElement = createFreshViewer();
         viewerElement.setAttribute('data-image-list-x', JSON.stringify(blobUrls));
         viewerElement.setAttribute('data-amount-x', uploadedImages.length);
+        viewerElement.setAttribute('data-autoplay', autoplay);
+        viewerElement.setAttribute('data-fullscreen', fullscreen);
+        viewerElement.setAttribute('data-zoom', 'true');
+        viewerElement.setAttribute('data-zoom-max', '3');
+        viewerElement.setAttribute('data-speed', '100');
+        viewerElement.setAttribute('data-drag-speed', '150');
+        viewerElement.setAttribute('data-inertia', 'true');
 
-        viewer = viewerElement;
-        window.CI360.init(viewerElement, {
-          autoplay: autoplay,
-          fullscreen: fullscreen,
-          zoom: true,
-          zoomMax: 3,
-          speed: 100,
-          dragSpeed: 150,
-          inertia: true
-        });
+        document.getElementById('viewerContainer').style.display = 'block';
+
+        window.CI360.init(viewerElement);
 
         const successMsg = document.getElementById('successMsg');
         successMsg.classList.add('show');
