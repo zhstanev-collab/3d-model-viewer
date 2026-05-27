@@ -673,11 +673,13 @@
           return URL.createObjectURL(blob);
         });
 
-        // Remove folder-based attributes
+        // Remove remote-mode attributes and set local image list
         viewerElement.removeAttribute('data-folder');
         viewerElement.removeAttribute('data-filename-x');
-        viewerElement.removeAttribute('data-image-list');
-        
+        viewerElement.removeAttribute('data-amount-x');
+        viewerElement.setAttribute('data-image-list-x', JSON.stringify(blobUrls));
+        viewerElement.setAttribute('data-amount-x', uploadedImages.length);
+
         document.getElementById('viewerContainer').style.display = 'block';
 
         if (viewer) {
@@ -685,8 +687,6 @@
         }
         viewer = viewerElement;
         window.CI360.init(viewerElement, {
-          imageList: blobUrls,
-          amountX: uploadedImages.length,
           autoplay: autoplay,
           fullscreen: fullscreen,
           zoom: true,
