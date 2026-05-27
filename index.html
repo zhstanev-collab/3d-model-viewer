@@ -659,7 +659,23 @@
         const fullscreen = document.getElementById('uploadFullscreen').value === 'true';
 
         const viewerElement = document.getElementById('cloudimage-360-viewer');
-        
+
+        // Destroy previous viewer instance BEFORE modifying attributes
+        if (viewer) {
+          window.CI360.destroy(viewer);
+          viewer = null;
+        }
+
+        // Remove ALL folder/pattern attributes left from previous loads
+        // Attributes take priority over JS options, so they must be fully stripped
+        viewerElement.removeAttribute('data-folder');
+        viewerElement.removeAttribute('data-filename-x');
+        viewerElement.removeAttribute('data-filename-y');
+        viewerElement.removeAttribute('data-image-list-x');
+        viewerElement.removeAttribute('data-image-list-y');
+        viewerElement.removeAttribute('data-amount-x');
+        viewerElement.removeAttribute('data-amount-y');
+
         // Create blob URLs for uploaded images
         const blobUrls = uploadedImages.map(img => {
           const byteString = atob(img.data.split(',')[1]);
@@ -673,20 +689,12 @@
           return URL.createObjectURL(blob);
         });
 
-        // Remove remote-mode attributes and set local image list
-        viewerElement.removeAttribute('data-folder');
-        viewerElement.removeAttribute('data-filename-x');
-        viewerElement.removeAttribute('data-amount-x');
-        viewerElement.setAttribute('data-image-list-x', JSON.stringify(blobUrls));
-        viewerElement.setAttribute('data-amount-x', uploadedImages.length);
-
         document.getElementById('viewerContainer').style.display = 'block';
 
-        if (viewer) {
-          window.CI360.destroy(viewer);
-        }
         viewer = viewerElement;
         window.CI360.init(viewerElement, {
+          imageList: blobUrls,
+          amountX: uploadedImages.length,
           autoplay: autoplay,
           fullscreen: fullscreen,
           zoom: true,
